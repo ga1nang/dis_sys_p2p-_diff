@@ -329,6 +329,7 @@ class Blockchain:
         )
         competitionOver = blockheader.mine(self.current_target, self.newBlockAvailable)
         print("Mining......")
+        time.sleep(10)
         if competitionOver:
             print("Lost competition")
             self.LostCompetition()
@@ -395,7 +396,7 @@ if __name__ == "__main__":
 
         blockchain = Blockchain(utxos, MemPool, newBlockAvailable, secondryChain)
         blockchain.startSync(localHost, localHostPort, )
-        blockchain.buildUTXOS()
+        #blockchain.buildUTXOS()
 
         if simulateBTC:
             autoBroadcastTxs = Process(target = autoBroadcast)

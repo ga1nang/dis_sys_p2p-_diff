@@ -19,3 +19,6 @@ change connectToHost() function in syncManager.py
 change startDownload() in syncManager.py and change startSync() in blockchain.py
 change all startSync in blockchain.py
 broadcastTx() in blockchain.py
+buildUTOX bug
+startDownload() have some problem
+bug in blockheader.py in the validateBlock() in lastBlock = BlockChainDB().lastBlock()

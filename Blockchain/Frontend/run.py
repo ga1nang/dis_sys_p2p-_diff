@@ -207,9 +207,9 @@ def broadcastTx(TxObj, localHost = None):
 
         for ip in ipList:
             if localHost != ip:
-                sync = syncManager(ip, 8001,ip)
+                sync = syncManager(ip, 8000,ip)
                 try:
-                    sync.connectToHost(8001)
+                    sync.connectToHost(8000)
                     sync.publishTx(TxObj)
                 
                 except Exception as err:
