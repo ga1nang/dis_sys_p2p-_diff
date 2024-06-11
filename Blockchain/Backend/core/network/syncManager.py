@@ -30,7 +30,8 @@ class syncManager:
     def handleConnection(self):
         envelope = self.server.read()
         try:
-            self.addNode()
+            if self.addr[0].startswith("172"):
+                self.addNode()
             
             if envelope.command == b'Tx':
                 Transaction = Tx.parse(envelope.stream())
@@ -63,8 +64,8 @@ class syncManager:
         nodeDb = NodeDB()
         ipList = nodeDb.read()
 
-        if self.addr not in ipList:
-            nodeDb.write([self.addr])
+        if self.addr[0] not in ipList:
+            nodeDb.write(self.addr)
 
     def sendBlockToRequestor(self, start_block):
         blocksToSend = self.fetchBlocksFromBlockchain(start_block)
