@@ -1,11 +1,6 @@
-""" 
-Copyright (c) 2021 Codiesalert.com
-These scripts should be used for commercial purpose without Codies Alert Permission
-Any violations may lead to legal action
-"""
 import sys
 
-sys.path.append("/Users/Vmaha/Desktop/Bitcoin")
+sys.path.append("E:\\subject\\Distributed_System\\monday_test\\test_1")
 
 import copy
 import configparser
@@ -56,25 +51,25 @@ class Blockchain:
         self.addBlock(BlockHeight, prevBlockHash)
 
     """ Start the Sync Node """
-    def startSync(self, block = None):
+    def startSync(self, localHost, localHostPort, block = None):
         try:
             node = NodeDB()
-            portList = node.read()
+            ipList = node.read()
 
-            for port in portList:
-                if localHostPort != port:
-                    sync = syncManager(localHost, port, secondryChain = self.secondryChain)
+            for ip in ipList:
+                if localHost != ip:
+                    sync = syncManager(ip, localHostPort, ip, secondryChain = self.secondryChain)
                     try:
                         if block:
-                            sync.publishBlock(localHostPort - 1, port, block) 
+                            sync.publishBlock(localHostPort, block) 
                         else:                    
-                            sync.startDownload(localHostPort - 1, port, True)
+                            sync.startDownload(localHostPort, True)
                   
                     except Exception as err:
-                        pass
+                        print(f"Ga1nang : Error in publishBlock() or startDownload()\n{err}")
                     
         except Exception as err:
-            pass
+            print(f"Ga1nang: Error in startSync() \n{err}")
        
     """ Keep Track of all the unspent Transaction in cache memory for fast retrival"""
     def store_uxtos_in_cache(self):
@@ -215,8 +210,8 @@ class Blockchain:
             self.bits = target_to_bits(NEW_TARGET)
             self.current_target = NEW_TARGET
 
-    def BroadcastBlock(self, block):
-        self.startSync(block)
+    def BroadcastBlock(self, localHost, localHostPort, block):
+        self.startSync(localHost, localHostPort, block)
 
     def LostCompetition(self):
         deleteBlock = []
@@ -333,15 +328,16 @@ class Blockchain:
             VERSION, prevBlockHash, merkleRoot, timestamp, self.bits, nonce = 0
         )
         competitionOver = blockheader.mine(self.current_target, self.newBlockAvailable)
-
+        print("Mining......")
         if competitionOver:
+            print("Lost competition")
             self.LostCompetition()
         else:
             newBlock = Block(BlockHeight, self.Blocksize, blockheader, len(self.addTransactionsInBlock),
                             self.addTransactionsInBlock)
             blockheader.to_bytes()
             block = copy.deepcopy(newBlock)
-            broadcastNewBlock = Process(target = self.BroadcastBlock, args = (block, ))
+            broadcastNewBlock = Process(target = self.BroadcastBlock, args = (localHost, localHostPort, block, ))
             broadcastNewBlock.start()
             blockheader.to_hex()
             self.remove_spent_Transactions()
@@ -381,6 +377,7 @@ if __name__ == "__main__":
     localHostPort = int(config['MINER']['port'])
     simulateBTC = bool(config['MINER']['simulateBTC'])
     webport = int(config['Webhost']['port'])
+    otherHost = config['NODES']['node2']
 
     with Manager() as manager:
         utxos = manager.dict()
@@ -388,16 +385,16 @@ if __name__ == "__main__":
         newBlockAvailable = manager.dict()
         secondryChain = manager.dict()
         
-        webapp = Process(target=main, args=(utxos, MemPool, webport, localHostPort))
+        webapp = Process(target=main, args=(utxos, MemPool, webport, localHost))
         webapp.start()
         
         """ Start Server and Listen for miner requests """
-        sync = syncManager(localHost, localHostPort, newBlockAvailable, secondryChain, MemPool)
+        sync = syncManager(localHost, localHostPort, otherHost, newBlockAvailable, secondryChain, MemPool)
         startServer = Process(target = sync.spinUpTheServer)
         startServer.start()
 
         blockchain = Blockchain(utxos, MemPool, newBlockAvailable, secondryChain)
-        blockchain.startSync()
+        blockchain.startSync(localHost, localHostPort, )
         blockchain.buildUTXOS()
 
         if simulateBTC:

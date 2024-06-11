@@ -5,7 +5,7 @@ Any violations may lead to legal action
 """
 import sys
 
-sys.path.append("/Users/Vmaha/Desktop/Bitcoin")
+sys.path.append("E:\\subject\\Distributed_System\\monday_test\\test_1")
 from Blockchain.Backend.core.EllepticCurve.EllepticCurve import Sha256Point
 from Blockchain.Backend.util.util import hash160, hash256
 from Blockchain.Backend.core.database.database import AccountDB

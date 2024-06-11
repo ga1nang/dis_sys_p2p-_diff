@@ -140,3 +140,18 @@ def bits_to_target(bits):
     exponent = bits[-1]
     coefficient = little_endian_to_int(bits[:-1])
     return coefficient * 256**(exponent - 3)
+
+
+def string_to_16_bytes(s):
+    byte_data = s.encode('utf-8')
+    if len(byte_data) < 16:
+        byte_data = byte_data.ljust(16, b'\0')
+    elif len(byte_data) > 16:
+        byte_data = byte_data[:16]
+    return byte_data
+
+def bytes_to_string(b):
+    # Strip the null bytes and convert back to string
+    s = b.rstrip(b'\0').decode('utf-8')
+    return s
+

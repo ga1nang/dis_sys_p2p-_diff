@@ -3,23 +3,24 @@ from Blockchain.Backend.core.blockheader import BlockHeader
 from Blockchain.Backend.core.network.connection import Node
 from Blockchain.Backend.core.database.database import BlockchainDB, NodeDB
 from Blockchain.Backend.core.Tx import Tx
-from Blockchain.Backend.core.network.network import NetworkEnvelope, requestBlock, FinishedSending, portlist
+from Blockchain.Backend.core.network.network import NetworkEnvelope, requestBlock, FinishedSending, iplist
 from threading import Thread
 
 from Blockchain.Backend.util.util import little_endian_to_int 
 class syncManager:
-    def __init__(self, host, port, newBlockAvailable = None, secondryChain = None, Mempool = None):
-        self.host = host
-        self.port = port 
+    def __init__(self, localHost, localPort, remoteHost, newBlockAvailable = None, secondryChain = None, Mempool = None):
+        self.localHost = localHost
+        self.localPort = localPort
+        self.remoteHost = remoteHost 
         self.newBlockAvailable = newBlockAvailable
         self.secondryChain = secondryChain
         self.Mempool = Mempool
 
     def spinUpTheServer(self):
-        self.server = Node(self.host, self.port)
+        self.server = Node(self.localHost, self.localPort)
         self.server.startServer()
         print("SERVER STARTED")
-        print(f"[LISTENING] at {self.host}:{self.port}")
+        print(f"[LISTENING] at {self.localHost}:{self.localPort}")
 
         while True:
             self.conn, self.addr = self.server.acceptConnection()
@@ -29,8 +30,7 @@ class syncManager:
     def handleConnection(self):
         envelope = self.server.read()
         try:
-            if len(str(self.addr[1])) == 4:
-                self.addNode()
+            self.addNode()
             
             if envelope.command == b'Tx':
                 Transaction = Tx.parse(envelope.stream())
@@ -61,10 +61,10 @@ class syncManager:
 
     def addNode(self):
         nodeDb = NodeDB()
-        portList = nodeDb.read()
+        ipList = nodeDb.read()
 
-        if self.addr[1] and (self.addr[1] + 1) not in portList:
-            nodeDb.write([self.addr[1] + 1])
+        if self.addr not in ipList:
+            nodeDb.write([self.addr])
 
     def sendBlockToRequestor(self, start_block):
         blocksToSend = self.fetchBlocksFromBlockchain(start_block)
@@ -72,16 +72,16 @@ class syncManager:
         try:
             self.sendBlock(blocksToSend)
             self.sendSecondryChain()
-            self.sendPortlist()
+            self.sendIplist()
             self.sendFinishedMessage()
         except Exception as e:
             print(f"Unable to send the blocks \n {e}")
 
-    def sendPortlist(self):
+    def sendIplist(self):
         nodeDB = NodeDB()
-        portLists = nodeDB.read()
+        ipLists = nodeDB.read()
 
-        portLst = portlist(portLists)
+        portLst = iplist(ipLists)
         envelope = NetworkEnvelope(portLst.command, portLst.serialize())
         self.conn.sendall(envelope.serialize())
 
@@ -123,24 +123,24 @@ class syncManager:
         
         return blocksToSend
 
-    def connectToHost(self, localport, port, bindPort = None):
-        self.connect = Node(self.host, port)
+    def connectToHost(self, port, bindPort = None):
+        self.connect = Node(self.remoteHost, port)
 
         if bindPort:
-            self.socket = self.connect.connect(localport, bindPort)
+            self.socket = self.connect.connect(bindPort)
         else:
-            self.socket = self.connect.connect(localport)
+            self.socket = self.connect.connect()
 
         self.stream = self.socket.makefile('rb', None)
     
-    def publishBlock(self, localport, port, block):
-        self.connectToHost(localport, port)
+    def publishBlock(self, port, block):
+        self.connectToHost(port)
         self.connect.send(block)
 
     def publishTx(self, Tx):
         self.connect.send(Tx)
      
-    def startDownload(self, localport,  port, bindPort):
+    def startDownload(self,  port, bindPort):
         lastBlock = BlockchainDB().lastBlock()
 
         if not lastBlock:
@@ -151,7 +151,7 @@ class syncManager:
         startBlock = bytes.fromhex(lastBlockHeader)
 
         getHeaders = requestBlock(startBlock=startBlock)
-        self.connectToHost(localport, port, bindPort)
+        self.connectToHost(port, bindPort)
         self.connect.send(getHeaders)
 
         while True:    
@@ -162,14 +162,14 @@ class syncManager:
                 self.socket.close()
                 break
 
-            if envelope.command == b'portlist':
-                ports = portlist.parse(envelope.stream())
+            if envelope.command == b'iplist':
+                ips = iplist.parse(envelope.stream())
                 nodeDb = NodeDB()
-                portlists = nodeDb.read()
+                iplists = nodeDb.read()
 
-                for port in ports:
-                    if port not in portlists:
-                        nodeDb.write([port])
+                for ip in ips:
+                    if ip not in iplists:
+                        nodeDb.write([ip])
 
             if envelope.command == b'block':
                 blockObj = Block.parse(envelope.stream())

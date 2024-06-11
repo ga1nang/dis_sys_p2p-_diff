@@ -77,7 +77,7 @@ class BlockHeader:
                 )
             )
             self.nonce += 1
-            print(f"Mining Started {self.nonce}", end="\r")
+            #print(f"Mining Started {self.nonce}", end="\r")
         self.blockHash = int_to_little_endian(self.blockHash, 32).hex()[::-1]
         self.nonce -= 1
         self.bits = self.bits.hex()

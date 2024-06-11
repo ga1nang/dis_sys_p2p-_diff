@@ -1,7 +1,7 @@
 from base64 import encode
 from io import BytesIO
 from Blockchain.Backend.util.util import (int_to_little_endian, little_endian_to_int, hash256,
-encode_varint, read_varint)
+encode_varint, read_varint, string_to_16_bytes, bytes_to_string)
 
 NETWORK_MAGIC = b'\xf9\xbe\xb4\xd9'
 FINISHED_SENDING =b'\x0a\x11\x09\x07'
@@ -66,27 +66,27 @@ class requestBlock:
         result += self.endBlock
         return result 
 
-class portlist:
-    command = b'portlist'
-    def __init__(self, ports = None):
-        self.ports = ports
+class iplist:
+    command = b'iplist'
+    def __init__(self, ipAddresses = None):
+        self.ipAddresses = ipAddresses
 
     @classmethod
     def parse(cls, s):
-        ports = []
+        ipAddresses = []
         length = read_varint(s)
 
         for _ in range(length):
-            port = little_endian_to_int(s.read(4))
-            ports.append(port)
+            ip = bytes_to_string(s.read(16))
+            ipAddresses.append(ip)
         
-        return ports
+        return ipAddresses
 
     def serialize(self):
-        result = encode_varint(len(self.ports))
+        result = encode_varint(len(self.ipAddresses))
 
-        for port in self.ports:
-            result += int_to_little_endian(port, 4)
+        for ip in self.ipAddresses:
+            result += string_to_16_bytes(ip)
         
         return result
 

@@ -194,22 +194,22 @@ def wallet():
 
             if verified:
                 MEMPOOL[TxObj.TxId] = TxObj
-                relayTxs = Process(target = broadcastTx, args = (TxObj, localHostPort)) 
+                relayTxs = Process(target = broadcastTx, args = (TxObj, localHost)) 
                 relayTxs.start()
                 message = "Transaction added in memory Pool"
 
     return render_template("wallet.html", message=message)
 
-def broadcastTx(TxObj, localHostPort = None):
+def broadcastTx(TxObj, localHost = None):
     try:
         node = NodeDB()
-        portList = node.read()
+        ipList = node.read()
 
-        for port in portList:
-            if localHostPort != port:
-                sync = syncManager('127.0.0.1', port)
+        for ip in ipList:
+            if localHost != ip:
+                sync = syncManager(ip, 8001,ip)
                 try:
-                    sync.connectToHost(localHostPort - 1, port)
+                    sync.connectToHost(8001)
                     sync.publishTx(TxObj)
                 
                 except Exception as err:
@@ -218,11 +218,11 @@ def broadcastTx(TxObj, localHostPort = None):
     except Exception as err:
         pass
 
-def main(utxos, MemPool, port, localPort):
+def main(utxos, MemPool, port, localHostIP):
     global UTXOS
     global MEMPOOL
-    global localHostPort 
+    global localHost
     UTXOS = utxos
     MEMPOOL = MemPool
-    localHostPort = localPort
+    localHost = localHostIP
     app.run(port = port)
