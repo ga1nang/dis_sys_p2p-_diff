@@ -326,7 +326,7 @@ class Blockchain:
         blockheader = BlockHeader(
             VERSION, prevBlockHash, merkleRoot, timestamp, self.bits, nonce = 0
         )
-        print("Mining......")
+        #print("Mining......")
         competitionOver = blockheader.mine(self.current_target, self.newBlockAvailable)
 
         if competitionOver:
