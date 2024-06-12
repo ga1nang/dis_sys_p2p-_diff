@@ -37,25 +37,24 @@ class SendBTC:
         try:
             while len(newutxos) < 1:
                 newutxos = dict(self.utxos)
-                #time.sleep(2)
+                time.sleep(1)
         except Exception as e:
             print(f"Error in converting the Managed Dict to Normal Dict")
 
         for index, Txbyte in enumerate(newutxos):
-            if index > random.randint(1, 30):
-                if self.Total < self.Amount + 1:
-                    TxObj = newutxos[Txbyte]
+            if self.Total < self.Amount + 1:
+                TxObj = newutxos[Txbyte]
 
-                    for index, txout in enumerate(TxObj.tx_outs):
-                        if txout.script_pubkey.cmds[2] == self.fromPubKeyHash:
-                            self.Total += txout.amount
-                            prev_tx = bytes.fromhex(Txbyte)
-                            TxIns.append(TxIn(prev_tx, index))
-                else:
-                    break
+                for index, txout in enumerate(TxObj.tx_outs):
+                    if txout.script_pubkey.cmds[2] == self.fromPubKeyHash:
+                        self.Total += txout.amount
+                        prev_tx = bytes.fromhex(Txbyte)
+                        TxIns.append(TxIn(prev_tx, index))
+            else:
+                break
             
         self.isBalanceEnough = True
-        if self.Total < self.Amount:
+        if self.Total < self.Amount + 1:
             self.isBalanceEnough = False
 
         return TxIns

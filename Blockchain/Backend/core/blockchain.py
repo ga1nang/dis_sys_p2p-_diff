@@ -137,19 +137,19 @@ class Blockchain:
             self.TxJson.append(tx.to_dict())
 
     def calculate_fee(self):
-        # self.input_amount = 0
-        # self.output_amount = 0
-        # """ Calculate Input Amount """
-        # for TxId_index in self.remove_spent_transactions:
-        #     if TxId_index[0].hex() in self.utxos:
-        #         self.input_amount += (
-        #             self.utxos[TxId_index[0].hex()].tx_outs[TxId_index[1]].amount
-        #         )
+        self.input_amount = 0
+        self.output_amount = 0
+        """ Calculate Input Amount """
+        for TxId_index in self.remove_spent_transactions:
+            if TxId_index[0].hex() in self.utxos:
+                self.input_amount += (
+                    self.utxos[TxId_index[0].hex()].tx_outs[TxId_index[1]].amount
+                )
 
-        # """ Calculate Output Amount """
-        # for tx in self.addTransactionsInBlock:
-        #     for tx_out in tx.tx_outs:
-        #         self.output_amount += tx_out.amount
+        """ Calculate Output Amount """
+        for tx in self.addTransactionsInBlock:
+            for tx_out in tx.tx_outs:
+                self.output_amount += tx_out.amount
 
         self.fee = 1
 
@@ -385,8 +385,8 @@ if __name__ == "__main__":
         newBlockAvailable = manager.dict()
         secondryChain = manager.dict()
         
-        # webapp = Process(target=main, args=(utxos, MemPool, webport, localHost))
-        # webapp.start()
+        webapp = Process(target=main, args=(utxos, MemPool, webport, localHost))
+        webapp.start()
         
         
         sync = syncManager(localHost, localHostPort, otherHost, newBlockAvailable, secondryChain, MemPool)

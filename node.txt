@@ -22,3 +22,4 @@ broadcastTx() in blockchain.py
 buildUTOX bug
 startDownload() have some problem
 bug in blockheader.py in the validateBlock() in lastBlock = BlockChainDB().lastBlock()
+utxos error
