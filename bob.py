@@ -83,14 +83,14 @@ class Peer:
 # Example usage:
 if __name__ == "__main__":
     # Create a peer instance and start listening for incoming connections
-    node = Peer("172.16.129.173", 8000)
+    node = Peer("172.16.129.215", 8000)
     node.start_listening()
 
     # Give some time for the node to start listening
     time.sleep(2)
 
     # Connect to another peer (example IP address and port, change these accordingly)
-    peer_host = "172.16.128.101"
+    peer_host = "172.16.129.219"
     peer_port = 8000
     node.connect(peer_host, peer_port)
 

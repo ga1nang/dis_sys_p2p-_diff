@@ -16,8 +16,8 @@ class Node:
     def connect(self, bindPort = None):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
-        if bindPort:
-            self.socket.bind((self.host, self.port))
+        # if bindPort:
+        #     self.socket.bind((self.host, self.port))
 
         self.socket.connect((self.host, self.port))
         return self.socket
@@ -25,7 +25,7 @@ class Node:
     def acceptConnection(self):
         self.conn, self.addr = self.server.accept()
         self.stream = self.conn.makefile('rb', None)
-        print(f"Accepted..............{self.addr}")
+        #print(f"Accepted..............{self.addr}")
         return self.conn, self.addr
 
     def closeConnection(self):

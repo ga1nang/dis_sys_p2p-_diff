@@ -20,10 +20,7 @@ VERSION = 1
 INITIAL_TARGET = 0x0000FFFF00000000000000000000000000000000000000000000000000000000
 MAX_TARGET     = 0x0000ffff00000000000000000000000000000000000000000000000000000000
 
-"""
-# Calculate new Target to keep our Block mine time under 20 seconds
-# Reset Block Difficulty after every 10 Blocks
-"""
+
 AVERAGE_BLOCK_MINE_TIME = 20
 RESET_DIFFICULTY_AFTER_BLOCKS = 10
 AVERAGE_MINE_TIME = AVERAGE_BLOCK_MINE_TIME * RESET_DIFFICULTY_AFTER_BLOCKS
@@ -50,7 +47,7 @@ class Blockchain:
         prevBlockHash = ZERO_HASH
         self.addBlock(BlockHeight, prevBlockHash)
 
-    """ Start the Sync Node """
+    
     def startSync(self, localHost, localHostPort, block = None):
         try:
             node = NodeDB()
@@ -66,12 +63,14 @@ class Blockchain:
                             sync.startDownload(localHostPort, True)
                   
                     except Exception as err:
-                        print(f"Ga1nang : Error in publishBlock() or startDownload()\n{err}")
+                        #print(f"Ga1nang : Error in publishBlock() or startDownload()\n{err}")
+                        pass
                     
         except Exception as err:
-            print(f"Ga1nang: Error in startSync() \n{err}")
+            #print(f"Ga1nang: Error in startSync() \n{err}")
+            pass
        
-    """ Keep Track of all the unspent Transaction in cache memory for fast retrival"""
+    
     def store_uxtos_in_cache(self):
         for tx in self.addTransactionsInBlock:
             print(f"Transaction added {tx.TxId} ")
@@ -90,7 +89,7 @@ class Blockchain:
                         txId_index[1]
                     )
                     
-    """ Check if it is a double spending Attempt """
+    
     def doubleSpendingAttempt(self, tx):
         for txin in tx.tx_ins:
             if txin.prev_tx not in self.prevTxs and txin.prev_tx.hex() in self.utxos:
@@ -98,7 +97,7 @@ class Blockchain:
             else:
                 return True
 
-    """ Read Transactions from Memory Pool"""
+    
     def read_transaction_from_memorypool(self):
         self.Blocksize = 80
         self.TxIds = []
@@ -126,7 +125,7 @@ class Blockchain:
             del self.MemPool[txId]
 
            
-    """ Remove Transactions from Memory pool """
+    
     def remove_transactions_from_memorypool(self):
         for tx in self.TxIds:
             if tx.hex() in self.MemPool:
@@ -138,21 +137,21 @@ class Blockchain:
             self.TxJson.append(tx.to_dict())
 
     def calculate_fee(self):
-        self.input_amount = 0
-        self.output_amount = 0
-        """ Calculate Input Amount """
-        for TxId_index in self.remove_spent_transactions:
-            if TxId_index[0].hex() in self.utxos:
-                self.input_amount += (
-                    self.utxos[TxId_index[0].hex()].tx_outs[TxId_index[1]].amount
-                )
+        # self.input_amount = 0
+        # self.output_amount = 0
+        # """ Calculate Input Amount """
+        # for TxId_index in self.remove_spent_transactions:
+        #     if TxId_index[0].hex() in self.utxos:
+        #         self.input_amount += (
+        #             self.utxos[TxId_index[0].hex()].tx_outs[TxId_index[1]].amount
+        #         )
 
-        """ Calculate Output Amount """
-        for tx in self.addTransactionsInBlock:
-            for tx_out in tx.tx_outs:
-                self.output_amount += tx_out.amount
+        # """ Calculate Output Amount """
+        # for tx in self.addTransactionsInBlock:
+        #     for tx_out in tx.tx_outs:
+        #         self.output_amount += tx_out.amount
 
-        self.fee = self.input_amount - self.output_amount
+        self.fee = 1
 
     def buildUTXOS(self):
         allTxs = {}
@@ -194,7 +193,7 @@ class Blockchain:
 
 
     def adjustTargetDifficulty(self, BlockHeight):
-        if BlockHeight % 10 == 0:
+        if BlockHeight % 10 == 0 and BlockHeight >= 10: 
             bits, timestamp = self.getTargetDifficultyAndTimestamp(BlockHeight - 10)
             Lastbits, lastTimestamp = self.getTargetDifficultyAndTimestamp()
 
@@ -233,7 +232,7 @@ class Blockchain:
                     self.utxos[tx.id()] = tx.serialize()
                     block.Txs[idx].TxId = tx.id()
 
-                    """ Remove Spent Transactions """
+                    
                     for txin in tx.tx_ins:
                         if txin.prev_tx.hex() in self.utxos:
                             del self.utxos[txin.prev_tx.hex()]
@@ -246,7 +245,7 @@ class Blockchain:
                 block.BlockHeader.to_hex()
                 BlockchainDB().write([block.to_dict()])
             else:
-                """ Resolve the Conflict b/w ther Miners """
+                
                 orphanTxs = {}
                 validTxs = {}
                 if self.secondryChain:
@@ -286,7 +285,7 @@ class Blockchain:
                                 validBlock.Txs[index].TxId = tx.id()
                                 self.utxos[tx.id()] = tx
 
-                                """ Remove Spent Transactions """
+                                
                                 for txin in tx.tx_ins:
                                     if txin.prev_tx.hex() in self.utxos:
                                         del self.utxos[txin.prev_tx.hex()]
@@ -298,7 +297,7 @@ class Blockchain:
                             
                             BlockchainDB().write([validBlock.to_dict()])
                         
-                        """ Add Transactoins Back to MemPool """
+                        
                         for TxId in orphanTxs:
                             if TxId not in validTxs:
                                 self.MemPool[TxId] = Tx.to_obj(orphanTxs[TxId])
@@ -327,9 +326,9 @@ class Blockchain:
         blockheader = BlockHeader(
             VERSION, prevBlockHash, merkleRoot, timestamp, self.bits, nonce = 0
         )
-        competitionOver = blockheader.mine(self.current_target, self.newBlockAvailable)
         print("Mining......")
-        time.sleep(10)
+        competitionOver = blockheader.mine(self.current_target, self.newBlockAvailable)
+
         if competitionOver:
             print("Lost competition")
             self.LostCompetition()
@@ -386,16 +385,16 @@ if __name__ == "__main__":
         newBlockAvailable = manager.dict()
         secondryChain = manager.dict()
         
-        webapp = Process(target=main, args=(utxos, MemPool, webport, localHost))
-        webapp.start()
+        # webapp = Process(target=main, args=(utxos, MemPool, webport, localHost))
+        # webapp.start()
         
-        """ Start Server and Listen for miner requests """
+        
         sync = syncManager(localHost, localHostPort, otherHost, newBlockAvailable, secondryChain, MemPool)
         startServer = Process(target = sync.spinUpTheServer)
         startServer.start()
 
         blockchain = Blockchain(utxos, MemPool, newBlockAvailable, secondryChain)
-        blockchain.startSync(localHost, localHostPort, )
+        blockchain.startSync(localHost, localHostPort)
         #blockchain.buildUTXOS()
 
         if simulateBTC:

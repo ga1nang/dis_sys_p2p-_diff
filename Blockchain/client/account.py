@@ -1,8 +1,4 @@
-""" 
-Copyright (c) 2021 Codiesalert.com
-These scripts should be used for commercial purpose without Codies Alert Permission
-Any violations may lead to legal action
-"""
+
 import sys
 
 sys.path.append("E:\\subject\\Distributed_System\\monday_test\\test_1")

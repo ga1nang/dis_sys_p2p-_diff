@@ -21,6 +21,7 @@ class syncManager:
         self.server.startServer()
         print("SERVER STARTED")
         print(f"[LISTENING] at {self.localHost}:{self.localPort}")
+        print("Finding other Nodes")
 
         while True:
             self.conn, self.addr = self.server.acceptConnection()

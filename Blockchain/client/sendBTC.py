@@ -1,8 +1,4 @@
-""" 
-Copyright (c) 2021 Codiesalert.com
-These scripts should be used for commercial purpose without Codies Alert Permission
-Any violations may lead to legal action
-"""
+
 from Blockchain.Backend.util.util import decode_base58
 from Blockchain.Backend.core.Script import Script
 from Blockchain.Backend.core.Tx import TxIn, TxOut, Tx
@@ -33,8 +29,6 @@ class SendBTC:
         TxIns = []
         self.Total = 0
 
-        """Convert Public Address into Public Hash to find tx_outs that are locked to this hash"""
-
         self.From_address_script_pubkey = self.scriptPubKey(self.FromPublicAddress)
         self.fromPubKeyHash = self.From_address_script_pubkey.cmds[2]
 
@@ -43,13 +37,13 @@ class SendBTC:
         try:
             while len(newutxos) < 1:
                 newutxos = dict(self.utxos)
-                time.sleep(2)
+                #time.sleep(2)
         except Exception as e:
             print(f"Error in converting the Managed Dict to Normal Dict")
 
         for index, Txbyte in enumerate(newutxos):
             if index > random.randint(1, 30):
-                if self.Total < self.Amount:
+                if self.Total < self.Amount + 1:
                     TxObj = newutxos[Txbyte]
 
                     for index, txout in enumerate(TxObj.tx_outs):
@@ -71,7 +65,6 @@ class SendBTC:
         to_scriptPubkey = self.scriptPubKey(self.toAccount)
         TxOuts.append(TxOut(self.Amount, to_scriptPubkey))
 
-        """ Calculate Fee """
         self.fee = self.COIN
         self.changeAmount = self.Total - self.Amount - self.fee
         TxOuts.append(TxOut(self.changeAmount, self.From_address_script_pubkey))
